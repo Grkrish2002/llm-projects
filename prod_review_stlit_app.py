@@ -6,7 +6,7 @@ import openai
 import requests
 from tqdm import tqdm
 import time
-import docx
+# import docx
 
 #load_dotenv() is a function that loads variables from a .env file into environment variables in a Python script. 
 #It allows you to store sensitive information or configuration settings separate from your code
