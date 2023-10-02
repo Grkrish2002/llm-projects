@@ -1,4 +1,4 @@
-# for running the program, use python -m streamlit run prod_review_stlit_app.py in the terminal
+# for running the program, use  in the terminal
 import os
 import pandas as pd
 import streamlit as st
@@ -26,6 +26,40 @@ st.header("Hey, Input the product review & I will give out the summary and senti
 # input_file = "product_review_small_dataset.csv"
 # df = pd.read_csv(input_file)
 # print(df.head(1))
+
+def analyze_sentiment(review):
+    retries = 3
+    sentiment = None
+
+    while retries > 0:
+        messages = [
+            {"role": "system", "content": "You are an AI language model trained to analyze and detect the sentiment of product reviews."},
+            {"role": "user", "content": f"Analyze the following product review and determine if the sentiment is: positive, negative or neutral. Return only a single word, either POSITIVE, NEGATIVE or NEUTRAL: {review}"}
+        ]
+
+        completion = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=messages,
+            max_tokens=3,
+            n=1,
+            stop=None,
+            temperature=0
+        )
+
+        response_text = completion.choices[0].message.content
+        # print(response_text)
+        if response_text in ["POSITIVE", "NEGATIVE", "NEUTRAL"]:
+            sentiment = response_text
+            break
+        else:
+            retries -= 1
+            time.sleep(1)
+    else:
+        sentiment = "neutral"
+
+    retries = 3
+
+    return sentiment
 
 def summarize_review(review):
     retries = 3
@@ -83,11 +117,18 @@ submit = st.button('Analyze')
 
 if submit:
     #If the button is clicked, the below snippet will fetch us the summary & sentiment
-    summary = summarize_review(user_input)
-    
-    st.subheader("Product Review Summary:")
-#   
-    st.text(summary)
+   sentiment = analyze_sentiment(user_input)
+   st.subheader("Overall Sentiment:")
+   st.text(sentiment)
+
+   # add a delay of 20 seconds between requests to avoid hitting the openai free tier API call rate limit
+
+   time.sleep(20)
+   
+   summary = summarize_review(user_input)
+        
+   st.subheader("Product Review Summary:")
+   st.text(summary)
    
 # Save the results to a new Excel file
 # output_file = "reviews_analyzed_full_summaries.xlsx"
